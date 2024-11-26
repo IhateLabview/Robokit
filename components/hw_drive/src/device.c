@@ -16,6 +16,7 @@ extern void _drive_commands_init(void);
 extern void _scheduler_init(void);
 extern void _test_commands_init(void);
 extern void _robokit_pwm_motors_init(void);
+extern void imu_init(void);
 
 void device_init(void) {
     ROBOKIT_LOGI("Initializing device...");
@@ -25,6 +26,7 @@ void device_init(void) {
     _led_commands_init();
     _test_commands_init();
     _robokit_pwm_motors_init();
+    imu_init();
     ROBOKIT_LOGI("Device initialized");
 }
 

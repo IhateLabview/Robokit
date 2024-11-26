@@ -25,6 +25,7 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "robokit_log.h"
+#include "imu.h"
 
 static volatile S_command command_stack[ROBOKIT_COMMAND_STACK_SIZE];
 static volatile uint8_t command_stack_head = 0;
@@ -69,7 +70,8 @@ void _robokit_task_handler(void *parameters) {
  */
 void _robokit_task_handler_peripherals(void *parameters) {
 	while (1) {
-
+		// TODO: Test Imu
+		imu_update();
 		vTaskDelay(20 / portTICK_PERIOD_MS);
 	}
 }
