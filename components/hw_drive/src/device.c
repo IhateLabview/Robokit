@@ -6,6 +6,9 @@
 //
 
 #include "device.h"
+
+#include <mpu6050.h>
+
 #include "robokit_log.h"
 #include "pwm_motors.h"
 
@@ -26,6 +29,7 @@ void device_init(void) {
     _led_commands_init();
     _test_commands_init();
     _robokit_pwm_motors_init();
+    mpu6050_init();
     imu_init();
     ROBOKIT_LOGI("Device initialized");
 }
