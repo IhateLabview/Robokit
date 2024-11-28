@@ -69,10 +69,12 @@ void _robokit_task_handler(void *parameters) {
  * @param parameters void * Not used
  */
 void _robokit_task_handler_peripherals(void *parameters) {
+	vTaskDelay(100 / portTICK_PERIOD_MS);
+
 	while (1) {
 		// TODO: Test Imu
 		imu_update();
-		vTaskDelay(20 / portTICK_PERIOD_MS);
+		vTaskDelay(500 / portTICK_PERIOD_MS);
 	}
 }
 
