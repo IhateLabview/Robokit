@@ -10,7 +10,7 @@
 #include <mpu6050.h>
 
 #include "robokit_log.h"
-#include "pwm_motors.h"
+#include "fal.h"
 
 
 extern void _commands_init(void);
@@ -31,6 +31,7 @@ void device_init(void) {
     _robokit_pwm_motors_init();
     mpu6050_init();
     imu_init();
+    fal_init();
     ROBOKIT_LOGI("Device initialized");
 }
 

@@ -20,6 +20,7 @@
 
 #include <device.h>
 #include <esp_log.h>
+#include <fal.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -69,12 +70,13 @@ void _robokit_task_handler(void *parameters) {
  * @param parameters void * Not used
  */
 void _robokit_task_handler_peripherals(void *parameters) {
-	vTaskDelay(100 / portTICK_PERIOD_MS);
+	const TickType_t period = pdMS_TO_TICKS(10);  // 10 ms = 100 Hz
+	TickType_t last_wake_time = xTaskGetTickCount();
 
 	while (1) {
-		// TODO: Test Imu
+		fal_update();
 		imu_update();
-		vTaskDelay(500 / portTICK_PERIOD_MS);
+		vTaskDelayUntil(&last_wake_time, period);
 	}
 }
 
@@ -126,6 +128,8 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 
 
 	_callback_fn_list[tcmd](cmd, E_SCHEDULE_MODE_PRECHECK, &flags);
+	if(flags == 0xFF)
+		return E_PUSH_PRECHECK_FAILED;
 
 	if( robokit_get_free_stack_count() < 1 && !(flags & E_COMMAND_FLAG_BLOCK) ) {
 		ROBOKIT_LOGW("Stack is full");
