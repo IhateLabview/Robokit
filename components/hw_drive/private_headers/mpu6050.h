@@ -7,22 +7,11 @@
 #include <stdint.h>
 
 typedef struct {
-  int16_t X;
-  int16_t Y;
-  int16_t Z;
+	int16_t X;
+	int16_t Y;
+	int16_t Z;
 } S_Gyro;
 
-#define USE_BNO055 1
-
-#if USE_BNO055
-#define REGISTER_GYRO_X 0x14
-#define REGISTER_GYRO_Y 0x16
-#define REGISTER_GYRO_Z 0x18
-
-#define REGISTER_ACCEL_X 0x08
-#define REGISTER_ACCEL_Y 0x0A
-#define REGISTER_ACCEL_Z 0x0C
-#else
 #define REGISTER_GYRO_X 0x43
 #define REGISTER_GYRO_Y 0x45
 #define REGISTER_GYRO_Z 0x47
@@ -30,9 +19,17 @@ typedef struct {
 #define REGISTER_ACCEL_X 0x3b
 #define REGISTER_ACCEL_Y 0x3d
 #define REGISTER_ACCEL_Z 0x3f
-#endif
+
+
+enum {
+	E_MPU6050_POWER_MGMT_1 = 0x6b,
+	E_MPU6050_POWER_MGMT_2 = 0x6c
+};
+
 
 void mpu6050_init();
+
+void mpu6050_set_power_management(uint8_t management);
 
 S_Gyro mpu6050_get_acceleration(void);
 S_Gyro mpu6050_get_position(void);

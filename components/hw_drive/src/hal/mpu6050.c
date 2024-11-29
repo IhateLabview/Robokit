@@ -78,34 +78,12 @@ void mpu6050_init() {
 	i2c_param_config(I2C_NUM_0, &conf);
 	i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
 
-	i2c_write_register_byte(0X3F, 0x20);
-
-	uint8_t unitsel = (0 << 7) | // Orientation = Android
-						(0 << 4) | // Temperature = Celsius
-						(0 << 2) | // Euler = Degrees
-						(1 << 1) | // Gyro = Rads
-						(0 << 0);  // Accelerometer = m/s^2
-	i2c_write_register_byte(0X3B, unitsel);
-
-	vTaskDelay(30 / portTICK_PERIOD_MS);
-	uint8_t data = 0;
-	i2c_read_register_byte(0x00, &data);
-	ROBOKIT_LOGI("Addr abwarten");
-	while (data != 0xA0) {
-		i2c_read_register_byte(0x00, &data);
-
-		vTaskDelay(10 / portTICK_PERIOD_MS);
-	}
-	vTaskDelay(50 / portTICK_PERIOD_MS);
-	ROBOKIT_LOGI("Addr ok");
-	/* Set to normal power mode */
-	i2c_write_register_byte(0X3E, 0X00);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
-	i2c_write_register_byte(0X07, 0);
-
 	ROBOKIT_LOGI("MPU complete");
 }
 
+void mpu6050_set_power_management(uint8_t management) {
+	i2c_write_register_byte(management, 0);
+}
 
 
 
@@ -123,12 +101,6 @@ S_Gyro mpu6050_get_acceleration(void) {
 	i2c_read_register_word(REGISTER_ACCEL_Z, &data);
 	accel.Z = _make_2c(data);
 
-#if USE_BNO055
-	accel.X /= 100;
-	accel.Y /= 100;
-	accel.Z /= 100;
-#endif
-
 	return accel;
 }
 
@@ -144,12 +116,6 @@ S_Gyro mpu6050_get_position(void) {
 
 	i2c_read_register_word(REGISTER_GYRO_Z, &data);
 	position.Z = _make_2c(data);
-
-#if USE_BNO055
-	position.X /= 16;
-	position.Y /= 16;
-	position.Z /= 16;
-#endif
 
 	return position;
 }

@@ -16,6 +16,7 @@
 //
 // Created by Thomas Abplanalp on 15.11.24.
 
+// ReSharper disable CppDFAEndlessLoop
 #include "scheduler.h"
 
 #include <device.h>
@@ -72,6 +73,8 @@ void _robokit_task_handler(void *parameters) {
 void _robokit_task_handler_peripherals(void *parameters) {
 	const TickType_t period = pdMS_TO_TICKS(10);  // 10 ms = 100 Hz
 	TickType_t last_wake_time = xTaskGetTickCount();
+
+	vTaskDelay(250/portTICK_PERIOD_MS);
 
 	while (1) {
 		fal_update();
