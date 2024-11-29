@@ -93,13 +93,13 @@ S_Gyro mpu6050_get_acceleration(void) {
 
 	uint16_t data = 0;
 	i2c_read_register_word(REGISTER_ACCEL_X, &data);
-	accel.X = _make_2c(data);
+	accel.X = data / 16384.0f;
 
 	i2c_read_register_word(REGISTER_ACCEL_Y, &data);
-	accel.Y = _make_2c(data);
+	accel.Y = data / 16384.0f;
 
 	i2c_read_register_word(REGISTER_ACCEL_Z, &data);
-	accel.Z = _make_2c(data);
+	accel.Z = data / 16384.0f;
 
 	return accel;
 }
@@ -109,13 +109,13 @@ S_Gyro mpu6050_get_position(void) {
 
 	uint16_t data = 0;
 	i2c_read_register_word(REGISTER_GYRO_X, &data);
-	position.X = _make_2c(data);
+	position.X = data / 131.0f;
 
 	i2c_read_register_word(REGISTER_GYRO_Y, &data);
-	position.Y = _make_2c(data);
+	position.Y = data / 131.0f;
 
 	i2c_read_register_word(REGISTER_GYRO_Z, &data);
-	position.Z = _make_2c(data);
+	position.Z = data / 131.0f;
 
 	return position;
 }
