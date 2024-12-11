@@ -7,70 +7,64 @@
 #include "mpu6050.h"
 #include "../../../../../esp-idf/components/esp_timer/include/esp_timer.h"
 
-static float current_time, previous_time, elapsed_time;
-static float AccErrorX = 0, AccErrorY = 0, GyroErrorX = 0, GyroErrorY = 0, GyroErrorZ = 0;
-static float accAngleX, accAngleY, gyroAngleX, gyroAngleY, gyroAngleZ;
-static float roll, pitch, yaw;
 
-static void calculateError() {
+static S_Gyro standard_gyro;
+static S_Gyro standard_accel;
+static uint8_t is_initialized = 0;
+static uint64_t last_accel_timestamp = 0;
+static int32_t position_fz = 0;
 
-	for(int e=0;e < 200;e++) {
-		S_Gyro acc = mpu6050_get_acceleration();
-		AccErrorX += (atan((acc.Y) / sqrt(pow((acc.X), 2) + pow((acc.Z), 2))) * 180.0f / 3.14159f);
-		AccErrorY += (atan(-1 * (acc.X) / sqrt(pow((acc.Y), 2) + pow((acc.Z), 2))) * 180.0f / 3.14159f);
+void _robokit_retrieve_defaults(void) {
+	int32_t gyro_x=0, gyro_y=0, gyro_z=0;
+
+	ROBOKIT_LOGI("ROBOKIT_RETRIEVE_DEFAULTS");
+	for(int e=0;e<200;e++) {
+		S_Gyro data = mpu6050_get_acceleration();
+		gyro_x += data.X;
+		gyro_y += data.Y;
+		gyro_z += data.Z;
 	}
+	is_initialized = 1;
 
-	AccErrorX = AccErrorX / 200;
-	AccErrorY = AccErrorY / 200;
-
-	for(int e=0;e < 200;e++) {
-		S_Gyro acc = mpu6050_get_position();
-		GyroErrorX = acc.X;
-		GyroErrorY = acc.Y;
-		GyroErrorZ = acc.Z;
-	}
-
-	GyroErrorX = GyroErrorX / 200;
-	GyroErrorY = GyroErrorY / 200;
-	GyroErrorZ = GyroErrorZ / 200;
+	standard_accel = (S_Gyro){
+		.X = gyro_x/200,
+		.Y = gyro_y/200,
+		.Z = gyro_z/200,
+	};
+	last_accel_timestamp = esp_timer_get_time()/1000;
 }
-
 
 void imu_init(void) {
 	ROBOKIT_LOGI("imu_init()");
 	mpu6050_set_power_management( E_MPU6050_POWER_MGMT_1 );
+	_robokit_retrieve_defaults();
+}
 
-	calculateError();
-
-	current_time = esp_timer_get_time();
+static void _robokit_convert(S_Gyro *gyro, const S_Gyro *adjust) {
+	gyro->X -= adjust->X;
+	gyro->Y -= adjust->Y;
+	gyro->Z -= adjust->Z;
 }
 
 void imu_update(void) {
+	if(!is_initialized)
+		return;
+
 	static uint8_t counter = 0;
+	static int32_t last_position = 0;
+
 	if(++counter > 5) {
 		counter = 0;
-		S_Gyro acc = mpu6050_get_acceleration();
+		S_Gyro angle = mpu6050_get_acceleration();
+		_robokit_convert(&angle, &standard_accel);
 
-		accAngleX = (atan(acc.Y / sqrt(pow(acc.X, 2) + pow(acc.Z, 2))) * 180.0f / 3.14159f) - AccErrorX; //AccErrorX is calculated in the calculateError() function
-		accAngleY = (atan(-1 * acc.X / sqrt(pow(acc.Y, 2) + pow(acc.Z, 2))) * 180.0f / 3.14159f) - AccErrorY;
+		uint64_t timestamp = esp_timer_get_time()/1000;
+		int32_t timestamp_delta = timestamp - last_accel_timestamp;
+		last_accel_timestamp = timestamp;
 
-		previous_time = current_time;
-		current_time = esp_timer_get_time();
+		last_position += timestamp_delta * timestamp_delta / 2 * angle.Z /1000000;
 
-		elapsed_time = (current_time - previous_time) / 1000000;
-		S_Gyro pos = mpu6050_get_position();
-		pos.X -= GyroErrorX; //GyroErrorX is calculated in the calculateError() function
-		pos.Y -= GyroErrorY;
-		pos.Z -= GyroErrorZ;
-
-		gyroAngleX += pos.X * elapsed_time; // deg/s * s = deg
-		gyroAngleY += pos.Y * elapsed_time;
-		yaw += pos.Z * elapsed_time;
-
-		roll = 0.96 * gyroAngleX + 0.04 * accAngleX;
-		pitch = 0.96 * gyroAngleY + 0.04 * accAngleY;
-
-		ROBOKIT_LOGI("%f %f %f", roll, pitch, yaw);
+		printf("Position: %ld\n", last_position);
 	}
 }
 

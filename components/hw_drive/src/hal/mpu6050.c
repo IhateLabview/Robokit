@@ -42,13 +42,6 @@ static esp_err_t i2c_read_register_byte(uint8_t reg, uint8_t *data) {
 	return ret;
 }
 
-static int16_t _make_2c(uint16_t zahl) {
-	if(zahl > 0x8000) {
-		return -((65535 - zahl) + 1);
-	}
-	return zahl;
-}
-
 static esp_err_t i2c_read_register_word(uint8_t reg, uint16_t *data) {
 	uint8_t dd = 0;
 	esp_err_t ret = i2c_read_register_byte(reg, &dd);
@@ -77,8 +70,6 @@ void mpu6050_init() {
 	};
 	i2c_param_config(I2C_NUM_0, &conf);
 	i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0);
-
-	ROBOKIT_LOGI("MPU complete");
 }
 
 void mpu6050_set_power_management(uint8_t management) {
@@ -93,13 +84,13 @@ S_Gyro mpu6050_get_acceleration(void) {
 
 	uint16_t data = 0;
 	i2c_read_register_word(REGISTER_ACCEL_X, &data);
-	accel.X = data / 16384.0f;
+	accel.X = data;
 
 	i2c_read_register_word(REGISTER_ACCEL_Y, &data);
-	accel.Y = data / 16384.0f;
+	accel.Y = data;
 
 	i2c_read_register_word(REGISTER_ACCEL_Z, &data);
-	accel.Z = data / 16384.0f;
+	accel.Z = data;
 
 	return accel;
 }
@@ -109,13 +100,13 @@ S_Gyro mpu6050_get_position(void) {
 
 	uint16_t data = 0;
 	i2c_read_register_word(REGISTER_GYRO_X, &data);
-	position.X = data / 131.0f;
+	position.X = data;
 
 	i2c_read_register_word(REGISTER_GYRO_Y, &data);
-	position.Y = data / 131.0f;
+	position.Y = data;
 
 	i2c_read_register_word(REGISTER_GYRO_Z, &data);
-	position.Z = data / 131.0f;
+	position.Z = data;
 
 	return position;
 }

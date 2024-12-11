@@ -7,9 +7,9 @@
 #include <stdint.h>
 
 typedef struct {
-	float X;
-	float Y;
-	float Z;
+	int16_t X;
+	int16_t Y;
+	int16_t Z;
 } S_Gyro;
 
 #define REGISTER_GYRO_X 0x43
